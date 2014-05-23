@@ -125,5 +125,7 @@ the resulting byte size: 220
         }
     }
 
-
+```xml
     <bean class="com.alibaba.dubbo.demo.SerializationOptimizer" init-method="init"/>
+```
+
