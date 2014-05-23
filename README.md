@@ -5,6 +5,13 @@ Work in progress...
 
 目前，修改优化了一下dubbo的序列化体系并添加了两个新的开源Java高效序列化方式：kryo和FST
 
+直接在dubbo协议中将序列化方式设为kryo或者fst即可：
+
+    <dubbo:protocol name="dubbo" serialization="kryo"/>
+
+    <dubbo:protocol name="dubbo" serialization="fst"/>
+
+
 从序列化和反序列化的CPU开销来说，目前观察提升并不明显。
 
 但对序列化中最为重要的生成字节码大小（决定了远程调用的网络传输时间和带宽占用），应该很多应用中会有较明显的改进（越小越好）。
