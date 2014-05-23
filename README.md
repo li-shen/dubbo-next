@@ -21,7 +21,7 @@ Work in progress...
 
 具体结果如下：
 
-*kryo （新加序列化方式）*
+## kryo （新加序列化方式）
 
 响应消息：
 the resulting byte size: 39
@@ -29,7 +29,7 @@ the resulting byte size: 39
 请求消息：
 the resulting byte size: 248
 
-*FST （新加序列化方式）*
+## FST （新加序列化方式）
 
 响应消息：
 the resulting byte size of encoding is 42
@@ -38,7 +38,7 @@ the resulting byte size of encoding is 42
 the resulting byte size of encoding is 264
 
 
-*hessian lite （dubbo默认序列化）*
+## hessian lite （dubbo默认序列化）
 
 响应消息：
 the resulting byte size: 129
@@ -47,7 +47,7 @@ the resulting byte size: 129
 the resulting byte size: 503
 
 
-*dubbo （dubbo尚未成熟的高效序列化）*
+## dubbo （dubbo尚未成熟的高效序列化）
 
 响应消息：
 the resulting byte size: 117
@@ -55,7 +55,7 @@ the resulting byte size: 117
 请求消息：
 the resulting byte size: 390
 
-*fastjson （用阿里的fastjson库做json序列化）*
+## fastjson （用阿里的fastjson库做json序列化）
 
 响应消息：
 the resulting byte size: 78
@@ -64,7 +64,7 @@ the resulting byte size: 78
 the resulting byte size: 431
 
 
-*native java （java自带序列化）*
+## native java （java自带序列化）
 
 响应消息：
 the resulting byte size: 277
