@@ -1,200 +1,119 @@
-由于开源站点因为安全问题被下掉，如果编译时出现找不到opensesame依赖情况的，请先手动下载https://github.com/alibaba/opensesame
-本地install，这几天我们会把opensesame发到mavan中央仓库。
+Continue making efforts on dubbo for a Chinese e-commerce company.
 
-临时文档地址：http://alibaba.github.io/dubbo-doc-static/Developer+Guide-zh.htm
+Work in progress...
 
-================================================================
 
-Dubbo is a distributed service framework enpowers applications with service import/export capability with high performance RPC.
+目前，修改优化了一下dubbo的序列化体系并添加了两个新的开源Java高效序列化方式：kryo和FST
 
-It's composed of three kernel parts:
+从序列化和反序列化的CPU开销来说，目前观察提升并不明显。
 
-Remoting: a network communication framework provides sync-over-async and request-response messaging.
+但对序列化中最为重要的生成字节码大小（决定了远程调用的网络传输时间和带宽占用），应该很多应用中会有较明显的改进（越小越好）。
 
-Clustering: a remote procedure call abstraction with load-balancing/failover/clustering capabilities.
+下面基于一个较为接近真实的广告竞价service，测试传输字节码大小（基于默认dubbo RPC协议 + 不同序列化方式）
 
-Registry: a service directory framework for service registration and service event publish/subscription
+大致结果是：
 
-For more, please refer to:
+新加的kryo和FST序列化，在请求消息的体积上是dubbo默认的hessian lite序列化的1/2，是dubbo自己还未完全成熟的java高效序列化方式的2/3
 
-    http://code.alibabatech.com/wiki/display/dubbo
+它们在响应消息体积上是dubbo默认的hessian lite序列化的1/3，是dubbo自己还未完全成熟的java高效序列化方式的1/3
 
-================================================================
-Quick Start
-================================================================
+另外，由于dubbo默认RPC协议自身传输了额外大量元数据，在总体积中比例较大
 
-Export remote service:
+具体结果如下：
 
-    <bean id="barService" class="com.foo.BarServiceImpl" />
-	
-    <dubbo:service interface="com.foo.BarService" ref="barService" />
+*kryo （新加序列化方式）*
 
-Refer remote service:
+响应消息：
+the resulting byte size: 39
 
-    <dubbo:reference id="barService" interface="com.foo.BarService" />
-	
-    <bean id="barAction" class="com.foo.BarAction">
-        <property name="barService" ref="barService" />
-    </bean>
+请求消息：
+the resulting byte size: 248
 
-================================================================
-Source Building
-================================================================
+*FST （新加序列化方式）*
 
-0. Install the git and maven command line:
+响应消息：
+the resulting byte size of encoding is 42
 
-    yum install git
-    or: apt-get install git
+请求消息：
+the resulting byte size of encoding is 264
 
-    cd ~
-    wget http://www.apache.org/dist//maven/binaries/apache-maven-2.2.1-bin.tar.gz
-    tar zxvf apache-maven-2.2.1-bin.tar.gz
-    vi .bash_profile
-       - edit: export PATH=$PATH:~/apache-maven-2.2.1/bin
-    source .bash_profile
 
-1. Checkout the dubbo source code:
+*hessian lite （dubbo默认序列化）*
 
-    cd ~
-    git clone https://github.com/alibaba/dubbo.git dubbo
+响应消息：
+the resulting byte size: 129
 
-    git checkout -b dubbo-2.4.0
-    git checkout master
+请求消息：
+the resulting byte size: 503
 
-2. Import the dubbo source code to eclipse project:
 
-    cd ~/dubbo
-    mvn eclipse:eclipse
-    Eclipse -> Menu -> File -> Import -> Exsiting Projects to Workspace -> Browse -> Finish
+*dubbo （dubbo尚未成熟的高效序列化）*
 
-    Context Menu -> Run As -> Java Application:
-    dubbo-demo-provider/src/test/java/com.alibaba.dubbo.demo.provider.DemoProvider
-    dubbo-demo-consumer/src/test/java/com.alibaba.dubbo.demo.consumer.DemoConsumer
-    dubbo-monitor-simple/src/test/java/com.alibaba.dubbo.monitor.simple.SimpleMonitor
-    dubbo-registry-simple/src/test/java/com.alibaba.dubbo.registry.simple.SimpleRegistry
+响应消息：
+the resulting byte size: 117
 
-    Edit Config:
-    dubbo-demo-provider/src/test/resources/dubbo.properties
-    dubbo-demo-consumer/src/test/resources/dubbo.properties
-    dubbo-monitor-simple/src/test/resources/dubbo.properties
-    dubbo-registry-simple/src/test/resources/dubbo.properties
+请求消息：
+the resulting byte size: 390
 
-3. Build the dubbo binary package:
+*fastjson （用阿里的fastjson库做json序列化）*
 
-    cd ~/dubbo
-    mvn clean install -Dmaven.test.skip
-    cd dubbo/target
-    ls
+响应消息：
+the resulting byte size: 78
 
-4. Install the demo provider:
+请求消息：
+the resulting byte size: 431
 
-    cd ~/dubbo/dubbo-demo-provider/target
-    tar zxvf dubbo-demo-provider-2.4.0-assembly.tar.gz
-    cd dubbo-demo-provider-2.4.0/bin
-    ./start.sh
 
-5. Install the demo consumer:
+*native java （java自带序列化）*
 
-    cd ~/dubbo/dubbo-demo-consumer/target
-    tar zxvf dubbo-demo-consumer-2.4.0-assembly.tar.gz
-    cd dubbo-demo-consumer-2.4.0/bin
-    ./start.sh
-    cd ../logs
-    tail -f stdout.log
+响应消息：
+the resulting byte size: 277
 
-6. Install the simple monitor:
+请求消息：
+the resulting byte size: 885
 
-    cd ~/dubbo/dubbo-simple-monitor/target
-    tar zxvf dubbo-simple-monitor-2.4.0-assembly.tar.gz
-    cd dubbo-simple-monitor-2.4.0/bin
-    ./start.sh
-    http://127.0.0.1:8080
+=============================================
 
-7. Install the simple registry:
 
-    cd ~/dubbo/dubbo-simple-registry/target
-    tar zxvf dubbo-simple-registry-2.4.0-assembly.tar.gz
-    cd dubbo-simple-registry-2.4.0/bin
-    ./start.sh
+同时也测试了一下简单的hello world service，由于传输数据太简单，各种序列化方式差别就不大了：
 
-    cd ~/dubbo/dubbo-demo-provider/conf
-    vi dubbo.properties
-       - edit: dubbo.registry.adddress=dubbo://127.0.0.1:9090
-    cd ../bin
-    ./restart.sh
+kryo
 
-    cd ~/dubbo/dubbo-demo-consumer/conf
-    vi dubbo.properties
-       - edit: dubbo.registry.adddress=dubbo://127.0.0.1:9090
-    cd ../bin
-    ./restart.sh
+the resulting byte size: 27
 
-    cd ~/dubbo/dubbo-simple-monitor/conf
-    vi dubbo.properties
-       - edit: dubbo.registry.adddress=dubbo://127.0.0.1:9090
-    cd ../bin
-    ./restart.sh
+the resulting byte size: 181
 
-8. Install the zookeeper registry:
+FST
 
-    cd ~
-    wget http://www.apache.org/dist//zookeeper/zookeeper-3.3.3/zookeeper-3.3.3.tar.gz
-    tar zxvf zookeeper-3.3.3.tar.gz
-    cd zookeeper-3.3.3/conf
-    cp zoo_sample.cfg zoo.cfg
-    vi zoo.cfg
-       - edit: dataDir=/home/xxx/data
-    cd ../bin
-    ./zkServer.sh start
+the resulting byte size of encoding is 28
 
-    cd ~/dubbo/dubbo-demo-provider/conf
-    vi dubbo.properties
-       - edit: dubbo.registry.adddress=zookeeper://127.0.0.1:2181
-    cd ../bin
-    ./restart.sh
+the resulting byte size of encoding is 192
 
-    cd ~/dubbo/dubbo-demo-consumer/conf
-    vi dubbo.properties
-       - edit: dubbo.registry.adddress=zookeeper://127.0.0.1:2181
-    cd ../bin
-    ./restart.sh
 
-    cd ~/dubbo/dubbo-simple-monitor/conf
-    vi dubbo.properties
-       - edit: dubbo.registry.adddress=zookeeper://127.0.0.1:2181
-    cd ../bin
-    ./restart.sh
+hessian lite
 
-9. Install the redis registry:
 
-    cd ~
-    wget http://redis.googlecode.com/files/redis-2.4.8.tar.gz
-    tar xzf redis-2.4.8.tar.gz
-    cd redis-2.4.8
-    make
-    nohup ./src/redis-server redis.conf &
+the resulting byte size: 26
 
-    cd ~/dubbo/dubbo-demo-provider/conf
-    vi dubbo.properties
-       - edit: dubbo.registry.adddress=redis://127.0.0.1:6379
-    cd ../bin
-    ./restart.sh
+the resulting byte size: 195
 
-    cd ~/dubbo/dubbo-demo-consumer/conf
-    vi dubbo.properties
-       - edit: dubbo.registry.adddress=redis://127.0.0.1:6379
-    cd ../bin
-    ./restart.sh
+dubbo
 
-    cd ~/dubbo/dubbo-simple-monitor/conf
-    vi dubbo.properties
-       - edit: dubbo.registry.adddress=redis://127.0.0.1:6379
-    cd ../bin
-    ./restart.sh
+the resulting byte size: 29
 
-10. Install the admin console:
+the resulting byte size: 220
 
-    cd ~/dubbo/dubbo-admin
-    mvn jetty:run -Ddubbo.registry.address=zookeeper://127.0.0.1:2181
-    http://root:root@127.0.0.1:8080
 
+另外，对于kryo和FST，要达到最优的序列化大小，用户要按照如下这种方式在客户端和服务器端部署一个自启动的spring bean，来注册要序列化的类，否则就和dubbo原来的方式差别不太大了：
+
+   public class SerializationOptimizer {
+
+       public void init() {
+           SerializableClassRegistry.registerClass(BidRequest.class);
+           SerializableClassRegistry.registerClass(BidResponse.class);
+           SerializableClassRegistry.registerClass(Device.class);
+           SerializableClassRegistry.registerClass(Geo.class);
+           SerializableClassRegistry.registerClass(Impression.class);
+           SerializableClassRegistry.registerClass(SeatBid.class);
+       }
+   }
