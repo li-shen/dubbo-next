@@ -17,6 +17,9 @@ package com.alibaba.dubbo.demo;
 
 public interface DemoService {
 
-	String sayHello(String name);
+	BidResponse bid(BidRequest request);
 
+    void throwNPE() throws NullPointerException;
+
+    String hello(String name);
 }

@@ -15,17 +15,38 @@
  */
 package com.alibaba.dubbo.demo.provider;
 
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
+import com.alibaba.dubbo.demo.BidResponse;
 import com.alibaba.dubbo.demo.DemoService;
-import com.alibaba.dubbo.rpc.RpcContext;
+import com.alibaba.dubbo.demo.BidRequest;
+import com.alibaba.dubbo.demo.SeatBid;
 
 public class DemoServiceImpl implements DemoService {
 
-    public String sayHello(String name) {
-        System.out.println("[" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + "] Hello " + name + ", request from consumer: " + RpcContext.getContext().getRemoteAddress());
-        return "Hello " + name + ", response form provider: " + RpcContext.getContext().getLocalAddress();
+    public BidResponse bid(BidRequest request) {
+        BidResponse response = new BidResponse();
+
+        response.setId("abc");
+
+        SeatBid seatBid = new SeatBid();
+        seatBid.setGroup("group");
+        seatBid.setSeat("seat");
+        List<SeatBid> seatBids = new ArrayList<SeatBid>(1);
+        seatBids.add(seatBid);
+
+        response.setSeatBids(seatBids);
+
+        return response;
     }
-    
+
+    public void throwNPE() throws NullPointerException {
+        throw new NullPointerException();
+    }
+
+    public String hello(String name) {
+        return "hello " + name;
+    }
 }

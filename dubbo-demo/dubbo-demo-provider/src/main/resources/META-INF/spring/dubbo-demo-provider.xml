@@ -21,7 +21,17 @@
 	http://code.alibabatech.com/schema/dubbo http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
 	
 	<bean id="demoService" class="com.alibaba.dubbo.demo.provider.DemoServiceImpl" />
-	
-	<dubbo:service interface="com.alibaba.dubbo.demo.DemoService" ref="demoService" />
+
+    <dubbo:protocol name="dubbo" serialization="kryo"/>
+    <!--<dubbo:protocol name="dubbo" serialization="fst"/>-->
+
+    <!--<dubbo:protocol name="dubbo" serialization="nativejava"/>-->
+    <!--<dubbo:protocol name="dubbo" serialization="hessian2"/>-->
+    <!--<dubbo:protocol name="dubbo" serialization="fastjson"/>-->
+    <!--<dubbo:protocol name="dubbo" serialization="dubbo"/>-->
+
+	<dubbo:service interface="com.alibaba.dubbo.demo.DemoService" ref="demoService"  protocol="dubbo"/>
+
+    <bean class="com.alibaba.dubbo.demo.SerializationOptimizer" init-method="init"/>
 	
 </beans>
