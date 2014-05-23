@@ -7,10 +7,13 @@ Work in progress...
 
 直接在dubbo协议中将序列化方式设为kryo或者fst即可：
 
-    <dubbo:protocol name="dubbo" serialization="kryo"/>
+```xml
+<dubbo:protocol name="dubbo" serialization="kryo"/>
+```
 
-    <dubbo:protocol name="dubbo" serialization="fst"/>
-
+```xml
+<dubbo:protocol name="dubbo" serialization="fst"/>
+```
 
 从序列化和反序列化的CPU开销来说，目前观察提升并不明显。
 
@@ -114,20 +117,20 @@ the resulting byte size: 220
 另外，对于kryo和FST，要达到最优的序列化大小，用户要按照如下这种方式在客户端和服务器端部署一个自启动的spring bean，来注册要序列化的类，否则就和dubbo原来的方式差别不太大了：
 
 ```java
-    public class SerializationOptimizer {
+public class SerializationOptimizer {
 
-        public void init() {
-            SerializableClassRegistry.registerClass(BidRequest.class);
-            SerializableClassRegistry.registerClass(BidResponse.class);
-            SerializableClassRegistry.registerClass(Device.class);
-            SerializableClassRegistry.registerClass(Geo.class);
-            SerializableClassRegistry.registerClass(Impression.class);
-            SerializableClassRegistry.registerClass(SeatBid.class);
-        }
+    public void init() {
+        SerializableClassRegistry.registerClass(BidRequest.class);
+        SerializableClassRegistry.registerClass(BidResponse.class);
+        SerializableClassRegistry.registerClass(Device.class);
+        SerializableClassRegistry.registerClass(Geo.class);
+        SerializableClassRegistry.registerClass(Impression.class);
+        SerializableClassRegistry.registerClass(SeatBid.class);
     }
+}
 ```
 
 ```xml
-    <bean class="com.alibaba.dubbo.demo.SerializationOptimizer" init-method="init"/>
+<bean class="com.alibaba.dubbo.demo.SerializationOptimizer" init-method="init"/>
 ```
 
