@@ -124,3 +124,6 @@ the resulting byte size: 220
             SerializableClassRegistry.registerClass(SeatBid.class);
         }
     }
+
+
+    <bean class="com.alibaba.dubbo.demo.SerializationOptimizer" init-method="init"/>
