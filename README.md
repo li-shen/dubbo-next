@@ -113,6 +113,7 @@ the resulting byte size: 220
 
 另外，对于kryo和FST，要达到最优的序列化大小，用户要按照如下这种方式在客户端和服务器端部署一个自启动的spring bean，来注册要序列化的类，否则就和dubbo原来的方式差别不太大了：
 
+```java
     public class SerializationOptimizer {
 
         public void init() {
@@ -124,6 +125,7 @@ the resulting byte size: 220
             SerializableClassRegistry.registerClass(SeatBid.class);
         }
     }
+```
 
 ```xml
     <bean class="com.alibaba.dubbo.demo.SerializationOptimizer" init-method="init"/>
